@@ -20,11 +20,7 @@ void* operator new[](size_t size, size_t alignment, size_t alignmentOffset, cons
 #	include <xbyak/xbyak.h>
 #endif
 
-#ifdef NDEBUG
 #	include <spdlog/sinks/basic_file_sink.h>
-#else
-#	include <spdlog/sinks/msvc_sink.h>
-#endif
 
 #pragma warning(pop)
 
@@ -38,11 +34,12 @@ namespace stl
 	using namespace SKSE::stl;
 
 	template <class T>
-	void write_thunk_call(std::uintptr_t a_src)
+	void write_thunk_call()
 	{
 		SKSE::AllocTrampoline(14);
 		auto& trampoline = SKSE::GetTrampoline();
-		T::func = trampoline.write_call<5>(a_src, T::thunk);
+		REL::Relocation<std::uintptr_t> hook{ T::id, T::offset };
+		T::func = trampoline.write_call<5>(hook.address(), T::thunk);
 	}
 
 	template <class T>
@@ -83,7 +80,7 @@ namespace stl
 }
 
 namespace logger = SKSE::log;
-namespace WinAPI = SKSE::WinAPI;
+//namespace WinAPI = SKSE::WinAPI;
 
 namespace util
 {
@@ -106,3 +103,9 @@ using json = nlohmann::json;
 #include "SimpleMath.h"
 
 using uint = uint32_t;
+
+#define LOG(...)    {SKSE::log::info(__VA_ARGS__);}
+#define WARN(...)   {SKSE::log::warn(__VA_ARGS__);}
+#define ERROR(...)  {SKSE::log::error(__VA_ARGS__);}
+#define DEBUG(...)  {SKSE::log::debug(__VA_ARGS__);}
+#define INFO(...)  {SKSE::log::debug(__VA_ARGS__);}
